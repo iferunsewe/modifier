@@ -20,7 +20,7 @@ def latest(name)
 end
 
 
-task :modify_csv_for_cancellation do
+task :modify_csv do
   modified = input = latest('project_2012-07-27_2012-10-10_performancedata')
   modification_factor = 1
   cancellaction_factor = 0.4
