@@ -20,7 +20,7 @@ module Support
     end
 
     def self.parse(file)
-      CSV.read(file, DEFAULT_CSV_OPTIONS)
+      CSV.read(file, DEFAULT_WRITE_CSV_OPTIONS)
     end
   end
 end

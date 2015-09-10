@@ -104,25 +104,13 @@ module Support
     end
 
     def combine_hashes(list_of_rows)
-      keys = []
-      list_of_rows.each do |row|
+      list_of_rows.each_with_object(Hash.new {|hash, key| hash[key] = []}) do |row, hashes|
         next if row.nil?
-        row.headers.each do |key|
-          keys << key
+          row.each do |k, v|
+            hashes[k] << v
+          end
         end
-      end
-      result = {}
-      keys.each do |key|
-        result[key] = []
-        list_of_rows.each do |row|
-          result[key] << (row.nil? ? nil : row[key])
-        end
-      end
-      result
     end
-
-
-
 
     def lazy_read(file)
       Enumerator.new do |yielder|

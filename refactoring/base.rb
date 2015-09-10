@@ -1,6 +1,7 @@
+require 'date'
+require 'csv'
 require_relative 'lib/support/combiner'
 require_relative 'lib/support/modifier'
 require_relative 'lib/support/transformer'
 require_relative 'lib/utils/float'
 require_relative 'lib/utils/string'
-require 'date'
