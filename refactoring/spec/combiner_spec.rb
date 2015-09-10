@@ -1,5 +1,5 @@
 require File.expand_path('spec_helper', File.dirname(__FILE__))
-require 'combiner'
+require 'support/combiner'
 
 def read_from_enumerator(enumerator)
 	result = []

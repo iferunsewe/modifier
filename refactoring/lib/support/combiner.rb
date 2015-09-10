@@ -20,7 +20,6 @@ class Combiner
       done = enumerators.all? { |enumerator| enumerator.nil? }
 			while !done
         last_values = select_values_from_enum(last_values, enumerators)
-
 				done = enumerators.all? { |enumerator| enumerator.nil? } and last_values.compact.empty?
 				unless done
 					yielder.yield(select_values_from_min_key(last_values))
