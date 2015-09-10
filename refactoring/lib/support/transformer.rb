@@ -11,7 +11,7 @@ module Support
     end
 
     def self.write(content, headers, output)
-      CSV.open(output, "wb", {:col_sep => "\t", :headers => :first_row, :row_sep => "\r\n"}) do |csv|
+      CSV.open(output, "wb", DEFAULT_WRITE_CSV_OPTIONS) do |csv|
         csv << headers
         content.each do |row|
           csv << row

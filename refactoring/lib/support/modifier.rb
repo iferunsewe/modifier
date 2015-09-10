@@ -1,6 +1,8 @@
 require 'csv'
 
 module Support
+  DEFAULT_CSV_OPTIONS = {:col_sep => "\t", :headers => :first_row}
+  DEFAULT_WRITE_CSV_OPTIONS = DEFAULT_CSV_OPTIONS.merge(:row_sep => "\r\n") #Avoids duplication of method above
   class Modifier
 
     KEYWORD_UNIQUE_ID = 'Keyword Unique ID'
@@ -17,37 +19,32 @@ module Support
     end
 
     def modify(output, input)
-      input = sort(input)
+      input = Transformer.sort(input)
 
       input_enumerator = lazy_read(input)
 
-      combiner = Combiner.new do |value|
-        value[KEYWORD_UNIQUE_ID]
-      end.combine(input_enumerator)
+      combiner = combining(input_enumerator)
 
-      merger = Enumerator.new do |yielder|
-        while true
-          begin
-            list_of_rows = combiner.next
-            merged = combine_hashes(list_of_rows)
-            yielder.yield(combine_values(merged))
-          rescue StopIteration
-            break
-          end
-        end
-      end
+      merger = merging(combiner)
 
+      create_new_output(output, merger)
+
+    end
+
+    private
+
+    def create_new_output(output, merger)
       done = false
       file_index = 0
       file_name = output.gsub('.txt', '')
-      while not done do
-        CSV.open(file_name + "_#{file_index}.txt", "wb", {:col_sep => "\t", :headers => :first_row, :row_sep => "\r\n"}) do |csv|
+      while !done do
+        CSV.open(file_name + "_#{file_index}.txt", "wb", DEFAULT_WRITE_CSV_OPTIONS) do |csv|
           headers_written = false
           line_count = 0
           while line_count < LINES_PER_FILE
             begin
               merged = merger.next
-              if not headers_written
+              if !headers_written
                 csv << merged.keys
                 headers_written = true
                 line_count +=1
@@ -64,14 +61,24 @@ module Support
       end
     end
 
-    private
+    def combining(input_enumerator)
+      Combiner.new do |value|
+        value[KEYWORD_UNIQUE_ID]
+      end.combine(input_enumerator)
+    end
 
-    def combine(merged)
-      result = []
-      merged.each do |_, hash|
-        result << combine_values(hash)
+    def merging(combiner)
+      Enumerator.new do |yielder|
+        while true
+          begin
+            list_of_rows = combiner.next
+            merged = combine_hashes(list_of_rows)
+            yielder.yield(combine_values(merged))
+          rescue StopIteration
+            break
+          end
+        end
       end
-      result
     end
 
     def combine_values(hash)
@@ -114,11 +121,8 @@ module Support
       result
     end
 
-    DEFAULT_CSV_OPTIONS = {:col_sep => "\t", :headers => :first_row}
 
-    def parse(file)
-      CSV.read(file, DEFAULT_CSV_OPTIONS)
-    end
+
 
     def lazy_read(file)
       Enumerator.new do |yielder|
@@ -126,26 +130,6 @@ module Support
           yielder.yield(row)
         end
       end
-    end
-
-    def write(content, headers, output)
-      CSV.open(output, "wb", {:col_sep => "\t", :headers => :first_row, :row_sep => "\r\n"}) do |csv|
-        csv << headers
-        content.each do |row|
-          csv << row
-        end
-      end
-    end
-
-    public
-    def sort(file)
-      output = "#{file}.sorted"
-      content_as_table = parse(file)
-      headers = content_as_table.headers
-      index_of_key = headers.index('Clicks')
-      content = content_as_table.sort_by { |a| -a[index_of_key].to_i }
-      write(content, headers, output)
-      output
     end
   end
 end
